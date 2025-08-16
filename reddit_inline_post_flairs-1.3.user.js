@@ -34,8 +34,8 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 8px;
-  padding: 8px 0;
   margin: 4px 0;
+  padding: 8px 0;
   border-bottom: none !important;
   list-style: none;
   scrollbar-width: thin;
@@ -53,6 +53,7 @@
   white-space: nowrap;
   margin: 0;
   padding: 0;
+  padding-top: 2px;
 }
 `;
     document.head.appendChild(style);
@@ -128,7 +129,7 @@
         const segments = path.split('/').filter(Boolean);
         if (segments.length === 2 && segments[0] === 'r') return true;
         if (segments.length === 3 && segments[0] === 'r') {
-            return ['hot', 'best', 'new', 'top', 'rising'].includes(segments[2]);
+            return ['best', 'hot', 'new', 'top', 'rising'].includes(segments[2]);
         }
         return false;
     }
