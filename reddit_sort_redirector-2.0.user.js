@@ -4,7 +4,7 @@
 // @version      2.0
 // @description  Reddit sort redirector with link handling for homepage and subreddits
 // @author       sjclayton
-// @match        https://www.reddit.com/*
+// @match        https://*.reddit.com/*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
