@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Inline Post Flairs
 // @namespace    SJC
-// @version      1.3
+// @version      1.4
 // @description  Display Reddit 'Post Flairs' widget inline (above posts, not in sidebar)
 // @author       sjclayton
 // @match        https://*.reddit.com/r/*
@@ -11,7 +11,6 @@
 (function() {
     'use strict';
 
-    // Post flair widget titles that should be inlined
     const WIDGET_TITLES = [
         'post flair',
         'post flairs',
@@ -106,25 +105,6 @@
         flairUL.remove();
     }
 
-    function hookNavigationEvents() {
-        ['pushState','replaceState'].forEach(name => {
-            const orig = history[name];
-            history[name] = function() {
-                const res = orig.apply(this, arguments);
-                window.dispatchEvent(new Event('locationchange'));
-                return res;
-            };
-        });
-        window.addEventListener('popstate', () =>
-            window.dispatchEvent(new Event('locationchange')));
-    }
-
-    let relocateTimer;
-    function scheduleRelocate() {
-        clearTimeout(relocateTimer);
-        relocateTimer = setTimeout(relocateFlairs, 300);
-    }
-
     function isValidSubredditPage() {
         const path = location.pathname.replace(/\/+$/, '');
         const segments = path.split('/').filter(Boolean);
@@ -135,31 +115,56 @@
         return false;
     }
 
-    function runIfValidSubredditPage() {
-        if (isValidSubredditPage()) scheduleRelocate();
-    }
-
-    hookNavigationEvents();
-    window.addEventListener('load', runIfValidSubredditPage);
-    window.addEventListener('locationchange', runIfValidSubredditPage);
-
-    const sidebar = document.querySelector('div#i18n-subreddit-right-rail-translator-content')
-    if (sidebar) {
-        new MutationObserver(records => {
+    function waitForFlairWidget(maxAttempts = 20, interval = 500) {
+        let attempts = 0;
+        const poll = setInterval(() => {
             if (!isValidSubredditPage()) return;
-            for (const rec of records) {
-                for (const node of rec.addedNodes) {
-                    if (
-                        node instanceof Element &&
-                        node.matches('h2') &&
-                        WIDGET_TITLES.includes(node.textContent.trim().toLowerCase())
-                    ) {
-                        scheduleRelocate();
-                        return;
-                    }
-                }
+
+            const heading = Array.from(document.querySelectorAll('h2'))
+                .find(h => WIDGET_TITLES.includes(h.textContent.trim().toLowerCase()));
+
+            if (heading) {
+                clearInterval(poll);
+                relocateFlairs();
             }
-        }).observe(sidebar, { childList: true, subtree: true });
+
+            attempts++;
+            if (attempts >= maxAttempts) clearInterval(poll);
+        }, interval);
     }
+
+    function runIfValidSubredditPage() {
+        if (isValidSubredditPage()) waitForFlairWidget();
+    }
+
+    function setupEventHooks() {
+        ['pushState', 'replaceState'].forEach(type => {
+            const orig = history[type];
+            history[type] = function() {
+                const res = orig.apply(this, arguments);
+                window.dispatchEvent(new Event('locationchange'));
+                return res;
+            };
+        });
+
+        window.addEventListener('popstate', () => {
+            window.dispatchEvent(new Event('locationchange'));
+        });
+
+        let lastUrl = location.href;
+        setInterval(() => {
+            if (location.href !== lastUrl) {
+                lastUrl = location.href;
+                window.dispatchEvent(new Event('locationchange'));
+            }
+        }, 500);
+
+        document.addEventListener('DOMContentLoaded', runIfValidSubredditPage);
+        window.addEventListener('load', runIfValidSubredditPage);
+        window.addEventListener('locationchange', runIfValidSubredditPage);
+    }
+
+    setupEventHooks();
+    runIfValidSubredditPage(); // Initial run
 
 })();
