@@ -23,6 +23,7 @@
         'flair filtering',
         'posts by flair',
         'search by flair',
+        'search by post flair',
         'sort by flair',
         'search subreddit by flairs'
     ];
@@ -142,20 +143,23 @@
     window.addEventListener('load', runIfValidSubredditPage);
     window.addEventListener('locationchange', runIfValidSubredditPage);
 
-    new MutationObserver(records => {
-        if (!isValidSubredditPage()) return;
-        for (const rec of records) {
-            for (const node of rec.addedNodes) {
-                if (
-                    node instanceof Element &&
-                    node.matches('h2') &&
-                    WIDGET_TITLES.includes(node.textContent.trim().toLowerCase())
-                ) {
-                    scheduleRelocate();
-                    return;
+    const sidebar = document.querySelector('div#i18n-subreddit-right-rail-translator-content')
+    if (sidebar) {
+        new MutationObserver(records => {
+            if (!isValidSubredditPage()) return;
+            for (const rec of records) {
+                for (const node of rec.addedNodes) {
+                    if (
+                        node instanceof Element &&
+                        node.matches('h2') &&
+                        WIDGET_TITLES.includes(node.textContent.trim().toLowerCase())
+                    ) {
+                        scheduleRelocate();
+                        return;
+                    }
                 }
             }
-        }
-    }).observe(document.body, { childList: true, subtree: true });
+        }).observe(sidebar, { childList: true, subtree: true });
+    }
 
 })();
