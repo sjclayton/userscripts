@@ -4,7 +4,7 @@
 // @version      1.4
 // @description  Display Reddit 'Post Flairs' widget inline (above posts, not in sidebar)
 // @author       sjclayton
-// @match        https://*.reddit.com/r/*
+// @match        https://*.reddit.com/*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
