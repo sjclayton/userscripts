@@ -7,6 +7,7 @@
 // @match        https://*.reddit.com/r/*
 // @downloadURL  https://github.com/sjclayton/userscripts/blob/main/reddit_subscriber_stats.user.js
 // @updateURL    https://github.com/sjclayton/userscripts/blob/main/reddit_subscriber_stats.user.js
+// @license      MIT
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
