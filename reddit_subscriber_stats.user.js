@@ -2,7 +2,7 @@
 // @name         Reddit Subscriber Stats
 // @namespace    https://github.com/sjclayton
 // @version      1.1
-// @description  Adds tooltips for both Weekly Visitors (percentage of total members) and Weekly Contributions (percentage of weekly visitors)
+// @description  Add tooltips on hover for both Weekly Visitors (percentage of total members) and Weekly Contributions (percentage of weekly visitors)
 // @author       sjclayton
 // @match        https://*.reddit.com/r/*
 // @downloadURL  https://github.com/sjclayton/userscripts/blob/main/reddit_subscriber_stats.user.js
