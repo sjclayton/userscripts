@@ -71,15 +71,6 @@
 
     if (!visitorSlot) return;
 
-    // Skip if already processed
-    const visitorProcessed = visitorSlot.dataset.percentAdded === "true";
-    const contribProcessed =
-      !contribSlot || contribSlot.dataset.percentAdded === "true";
-
-    if (visitorProcessed && contribProcessed) {
-      return;
-    }
-
     try {
       let data = statsCache[subName];
 
@@ -104,27 +95,28 @@
       const visitorNum = parseValue(visitorText);
 
       // PROCESS WEEKLY VISITORS
-      if (
-        visitorNum > 0 &&
-        totalMembers > 0 &&
-        !visitorSlot.dataset.percentAdded
-      ) {
+      if (visitorNum > 0 && totalMembers > 0) {
         const vPerc = ((visitorNum / totalMembers) * 100).toFixed(1);
         const vInfo = `${vPerc}% of ${totalMembers.toLocaleString()} total members`;
 
         const vTargets = findAllInShadow(document, visitorText);
+        let vAdded = false;
         vTargets.forEach((t) => {
-          t.setAttribute("title", vInfo);
-          t.style.cursor = "help";
+          if (!t.hasAttribute("title")) {
+            t.setAttribute("title", vInfo);
+            t.style.cursor = "help";
+            vAdded = true;
+          }
         });
-        visitorSlot.dataset.percentAdded = "true";
-        log(
-          `Success: Weekly Visitors (${visitorText}) identified as ${vPerc}% of total members.`,
-        );
+        if (vAdded) {
+          log(
+            `Success: Weekly Visitors (${visitorText}) identified as ${vPerc}% of total members.`,
+          );
+        }
       }
 
       // PROCESS WEEKLY CONTRIBUTIONS
-      if (contribSlot && !contribSlot.dataset.percentAdded) {
+      if (contribSlot) {
         const contribText = contribSlot.innerText.trim();
         const contribNum = parseValue(contribText);
 
@@ -133,14 +125,19 @@
           const cInfo = `${cPerc}% of weekly visitors`;
 
           const cTargets = findAllInShadow(document, contribText);
+          let cAdded = false;
           cTargets.forEach((t) => {
-            t.setAttribute("title", cInfo);
-            t.style.cursor = "help";
+            if (!t.hasAttribute("title")) {
+              t.setAttribute("title", cInfo);
+              t.style.cursor = "help";
+              cAdded = true;
+            }
           });
-          contribSlot.dataset.percentAdded = "true";
-          log(
-            `Success: Weekly Contributions (${contribText}) identified as ${cPerc}% of weekly visitors.`,
-          );
+          if (cAdded) {
+            log(
+              `Success: Weekly Contributions (${contribText}) identified as ${cPerc}% of weekly visitors.`,
+            );
+          }
         }
       }
     } catch (e) {
