@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Subscriber Stats
 // @namespace    https://github.com/sjclayton
-// @version      1.1.2
+// @version      1.1.3
 // @description  Add tooltips on hover for both Weekly Visitors (percentage of total members) and Weekly Contributions (percentage of weekly visitors)
 // @author       sjclayton
 // @match        https://www.reddit.com/r/*
@@ -10,7 +10,7 @@
 // @updateURL    https://github.com/sjclayton/userscripts/blob/main/reddit_subscriber_stats.user.js
 // @license      MIT
 // @grant        none
-// @run-at       document-idle
+// @run-at       document-end
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,7 @@
   const DEBUG_MODE = false;
 
   const log = (msg) => {
-    if (DEBUG_MODE) console.log(`[Reddit Sub Stats] ${msg}`);
+    if (DEBUG_MODE) console.log(`[RSS] ${msg}`);
   };
 
   const parseValue = (s) => {
@@ -144,7 +144,7 @@
         }
       }
     } catch (e) {
-      if (DEBUG_MODE) console.error("[Reddit Sub Stats] Error:", e);
+      if (DEBUG_MODE) console.error("[RSS] Error:", e);
     }
   }
 
