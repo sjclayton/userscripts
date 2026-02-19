@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Inline Post Flairs
 // @namespace    SJC
-// @version      1.4.2
+// @version      1.4.3
 // @description  Display Reddit 'Post Flairs' widget inline (above posts, not in sidebar)
 // @author       sjclayton
 // @match        https://*.reddit.com/*
@@ -12,21 +12,28 @@
 (function () {
   "use strict";
 
+  // Debug mode - set to true to show logs (default: false)
+  const DEBUG_MODE = false;
+
+  const log = (msg) => {
+    if (DEBUG_MODE) console.log(`[RIF] ${msg}`);
+  };
+
   const WIDGET_TITLES = [
-    "post flair",
-    "post flairs",
+    "filter by flair",
+    "filter posts by drug",
+    "filter posts",
+    "flair filtering",
     "flair",
     "flairs",
-    "filter by flair",
-    "filter posts",
-    "filter posts by drug",
-    "flair filtering",
+    "post flair",
+    "post flairs",
     "posts by flair",
     "search by flair",
     "search by post flair",
     "search for kde content",
-    "sort by flair",
     "search subreddit by flairs",
+    "sort by flair",
   ];
 
   const style = document.createElement("style");
@@ -105,12 +112,13 @@
     const spacerDiv = document.querySelector("article.w-full.m-0");
     if (spacerDiv?.parentNode) {
       spacerDiv.parentNode.insertBefore(bar, spacerDiv);
+      log("Inserted inline widget before targetDiv");
+      widgetDiv.remove();
+      flairUL.remove();
+      log("Removed original sidebar flair widget");
     } else if (heading?.parentNode) {
-      heading.parentNode.insertBefore(bar, heading.nextElementSibling);
+      log("Failed to insert inline widget - retrying...");
     }
-
-    widgetDiv.remove();
-    flairUL.remove();
   }
 
   function isValidSubredditPage() {
@@ -133,6 +141,7 @@
       );
 
       if (heading) {
+        log("Found valid flair widget heading");
         clearInterval(poll);
         relocateFlairs();
       }
@@ -163,6 +172,7 @@
     let lastUrl = location.href;
     setInterval(() => {
       if (location.href !== lastUrl) {
+        log("Location changed");
         lastUrl = location.href;
         window.dispatchEvent(new Event("locationchange"));
       }
@@ -174,5 +184,6 @@
   }
 
   setupEventHooks();
+  log("Script initialized and monitoring...");
   runIfValidSubredditPage(); // Initial run
 })();
