@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Inline Post Flairs
 // @namespace    SJC
-// @version      1.4
+// @version      1.4.2
 // @description  Display Reddit 'Post Flairs' widget inline (above posts, not in sidebar)
 // @author       sjclayton
 // @match        https://*.reddit.com/*
@@ -24,6 +24,7 @@
     "posts by flair",
     "search by flair",
     "search by post flair",
+    "search for kde content",
     "sort by flair",
     "search subreddit by flairs",
   ];
@@ -35,7 +36,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 8px;
-  margin: 4px 0;
+  margin: -6px 0 4px 0;
   padding: 8px 0;
   border-bottom: none !important;
   list-style: none;
