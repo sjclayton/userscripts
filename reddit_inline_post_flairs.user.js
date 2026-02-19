@@ -101,7 +101,7 @@
       if (el !== bar) el.remove();
     });
 
-    const spacerDiv = document.querySelector("div.my-xs.mx-2xs");
+    const spacerDiv = document.querySelector("article.w-full.m-0");
     if (spacerDiv?.parentNode) {
       spacerDiv.parentNode.insertBefore(bar, spacerDiv);
     } else if (heading?.parentNode) {
