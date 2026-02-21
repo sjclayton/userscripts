@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Inline Post Flairs
 // @namespace    SJC
-// @version      1.4.3
+// @version      1.5.0
 // @description  Display Reddit 'Post Flairs' widget inline (above posts, not in sidebar)
 // @author       sjclayton
 // @match        https://www.reddit.com/*
@@ -24,6 +24,7 @@
     "filter posts by drug",
     "filter posts",
     "flair filtering",
+    "flair filters",
     "flair",
     "flairs",
     "post flair",
@@ -36,19 +37,22 @@
     "sort by flair",
   ];
 
-  const style = document.createElement("style");
-  style.textContent = `
+  let styleInjected = false;
+  function injectStyle() {
+    if (styleInjected || !document.head) return;
+    const style = document.createElement("style");
+    style.textContent = `
 .inline-flair-bar {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 8px;
-  margin: -6px 0 4px 0;
-  padding: 8px 0;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  gap: 8px !important;
+  margin: 4px 0 !important;
+  padding: 8px 0 !important;
   border-bottom: none !important;
-  list-style: none;
-  scrollbar-width: thin;
-  scroll-behavior: smooth;
+  list-style: none !important;
+  scrollbar-width: thin !important;
+  scroll-behavior: smooth !important;
 }
 .inline-flair-bar::-webkit-scrollbar {
   height: 6px;
@@ -58,26 +62,27 @@
   border-radius: 3px;
 }
 .inline-flair-bar li {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  margin: 0;
-  padding: 0;
-  padding-top: 2px;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 2px 0 0 0 !important;
 }
 `;
-  document.head.appendChild(style);
+    document.head.appendChild(style);
+    styleInjected = true;
+  }
 
   function relocateFlairs() {
     const heading = Array.from(document.querySelectorAll("h2")).find((h) =>
       WIDGET_TITLES.includes(h.textContent.trim().toLowerCase()),
     );
-    if (!heading) return;
+    if (!heading) return false;
 
     let widgetDiv = heading;
     while (widgetDiv && widgetDiv.querySelectorAll("ul").length === 0) {
       widgetDiv = widgetDiv.parentElement;
     }
-    if (!widgetDiv) return;
+    if (!widgetDiv) return false;
 
     const allULs = Array.from(widgetDiv.querySelectorAll("ul"));
     let flairUL = null;
@@ -92,7 +97,7 @@
         maxLIs = nonEmptyLIs.length;
       }
     });
-    if (!flairUL) return;
+    if (!flairUL) return false;
 
     const nextHR = widgetDiv?.nextElementSibling;
     if (
@@ -102,23 +107,29 @@
       nextHR.remove();
     }
 
-    const bar = flairUL.cloneNode(true);
-    bar.classList.add("inline-flair-bar");
+    const targetDiv = document.querySelector("div.my-xs.mx-2xs");
+    if (targetDiv?.parentNode) {
+      // Remove any previously inserted inline bars
+      document.querySelectorAll(".inline-flair-bar").forEach((el) => {
+        el.remove();
+      });
 
-    document.querySelectorAll(".inline-flair-bar").forEach((el) => {
-      if (el !== bar) el.remove();
-    });
-
-    const spacerDiv = document.querySelector("article.w-full.m-0");
-    if (spacerDiv?.parentNode) {
-      spacerDiv.parentNode.insertBefore(bar, spacerDiv);
+      // Move flairUL directly without cloning to preserve event listeners
+      flairUL.classList.add("inline-flair-bar");
+      targetDiv.parentNode.insertBefore(flairUL, targetDiv);
       log("Inserted inline widget before targetDiv");
+
+      // Remove the original sidebar container
       widgetDiv.remove();
-      flairUL.remove();
       log("Removed original sidebar flair widget");
+
+      return true;
     } else if (heading?.parentNode) {
       log("Failed to insert inline widget - retrying...");
+      return false; // Still processing or target wrapper hasn't rendered yet
     }
+
+    return false;
   }
 
   function isValidSubredditPage() {
@@ -131,23 +142,30 @@
     return false;
   }
 
+  let currentPoll = null;
+
   function waitForFlairWidget(maxAttempts = 20, interval = 500) {
+    if (currentPoll) clearInterval(currentPoll);
+
     let attempts = 0;
-    const poll = setInterval(() => {
-      if (!isValidSubredditPage()) return;
-
-      const heading = Array.from(document.querySelectorAll("h2")).find((h) =>
-        WIDGET_TITLES.includes(h.textContent.trim().toLowerCase()),
-      );
-
-      if (heading) {
-        log("Found valid flair widget heading");
-        clearInterval(poll);
-        relocateFlairs();
+    currentPoll = setInterval(() => {
+      if (!isValidSubredditPage()) {
+        clearInterval(currentPoll);
+        return;
       }
 
-      attempts++;
-      if (attempts >= maxAttempts) clearInterval(poll);
+      const success = relocateFlairs();
+
+      if (success) {
+        log("Successfully relocated flair widget");
+        clearInterval(currentPoll);
+      } else {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          log("Max attempts reached, giving up");
+          clearInterval(currentPoll);
+        }
+      }
     }, interval);
   }
 
@@ -172,13 +190,18 @@
     let lastUrl = location.href;
     setInterval(() => {
       if (location.href !== lastUrl) {
-        log("Location changed");
+        log("Location changed (via setInterval)");
         lastUrl = location.href;
         window.dispatchEvent(new Event("locationchange"));
       }
     }, 500);
 
-    document.addEventListener("DOMContentLoaded", runIfValidSubredditPage);
+    // Inject stylesheet as early as possible after DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+      injectStyle();
+      runIfValidSubredditPage();
+    });
+
     window.addEventListener("load", runIfValidSubredditPage);
     window.addEventListener("locationchange", runIfValidSubredditPage);
   }
